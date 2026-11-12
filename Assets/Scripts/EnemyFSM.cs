@@ -156,6 +156,12 @@ public class EnemyFSM : MonoBehaviour
 
     private void Shoot()
     {
+        // Update still runs at zero time scale, so explicitly suppress shots while paused.
+        if (Time.timeScale <= 0f)
+        {
+            return;
+        }
+
         float timeSinceLastShot = Time.time - lastShotTime;
         if (timeSinceLastShot > shotInterval)
         {

@@ -1,8 +1,9 @@
 // PlayerShooting.cs
 // Maintainer: Qingzhe-Song
-// Summary: Spawns a projectile at the weapon's shoot point and plays the muzzle effect.
+// Summary: Fires projectiles while unpaused, consumes ammunition, and plays weapon effects.
 
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
 public class PlayerShooting : MonoBehaviour
@@ -22,13 +23,22 @@ public class PlayerShooting : MonoBehaviour
     [Tooltip("Audio source played each time the player fires.")]
     public AudioSource shootSound;
 
-    public void OnFire()
+    [Header("Ammunition")]
+    [Tooltip("Remaining bullets; each accepted Fire input consumes one bullet.")]
+    [FormerlySerializedAs("bulletsAmount")]
+    public int remainingBullets = 100;
+
+    public void OnFire(InputValue value)
     {
-        // Keep this callback name so the PlayerInput Send Messages binding can find it.
-        GameObject projectile = Instantiate(projectilePrefab);
-        projectile.transform.position = shootPoint.transform.position;
-        projectile.transform.rotation = shootPoint.transform.rotation;
-        muzzleEffect.Play();
-        shootSound.Play();
+        // PlayerInput sends this callback while paused too, so firing checks the time scale.
+        if (value.isPressed && remainingBullets > 0 && Time.timeScale > 0f)
+        {
+            remainingBullets--;
+            GameObject projectile = Instantiate(projectilePrefab);
+            projectile.transform.position = shootPoint.transform.position;
+            projectile.transform.rotation = shootPoint.transform.rotation;
+            muzzleEffect.Play();
+            shootSound.Play();
+        }
     }
 }
