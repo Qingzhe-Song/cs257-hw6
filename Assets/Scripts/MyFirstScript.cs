@@ -1,31 +1,29 @@
 // MyFirstScript.cs
 // Maintainer: Qingzhe-Song
-// Summary: Demonstrates Unity lifecycle messages by logging Start, a field value, and destruction.
+// Summary: Demonstrates Unity lifecycle messages by logging Start, an example value, and destruction.
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class MyFirstScript : MonoBehaviour
 {
     [Header("Logging Example")]
     [Tooltip("Example value printed each frame; this demonstration does not move the object.")]
     [SerializeField]
-    private float speed;
-    // Start is called before the first frame update
-    void Start()
+    [FormerlySerializedAs("speed")]
+    private float exampleValue;
+
+    private void Start()
     {
         print("Test Start");
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        print(speed);
+        print(exampleValue);
     }
 
-    // Happens when the game stops
-    void OnDestroy()
+    private void OnDestroy()
     {
         print("Test Destroyed");
     }

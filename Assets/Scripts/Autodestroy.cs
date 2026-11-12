@@ -2,25 +2,19 @@
 // Maintainer: Qingzhe-Song
 // Summary: Destroys its GameObject after a configured lifetime.
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class AutoDestroy : MonoBehaviour
 {
     [Header("Lifetime")]
     [InspectorName("Lifetime (Seconds)")]
     [Tooltip("Time after Start before this GameObject is destroyed.")]
-    public float delay;
-    // Start is called before the first frame update
-    void Start()
-    {
-        Destroy(gameObject, delay);
-    }
+    [FormerlySerializedAs("delay")]
+    public float lifetime;
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        
+        Destroy(gameObject, lifetime);
     }
 }

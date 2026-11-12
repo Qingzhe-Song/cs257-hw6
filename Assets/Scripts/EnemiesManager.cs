@@ -2,7 +2,6 @@
 // Maintainer: Qingzhe-Song
 // Summary: Tracks registered enemies and notifies listeners when the enemy list changes.
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,6 +9,7 @@ using UnityEngine.Events;
 public class EnemiesManager : MonoBehaviour
 {
     public static EnemiesManager instance;
+
     [Header("Enemy Tracking")]
     [Tooltip("Registered enemies used by the game mode to check whether the wave is cleared.")]
     public List<Enemy> enemies;
@@ -17,8 +17,8 @@ public class EnemiesManager : MonoBehaviour
     [Header("Events")]
     [Tooltip("Invoked after AddEnemy or RemoveEnemy updates the enemy list.")]
     public UnityEvent onChanged;
-    // Start is called before the first frame update
-    void Awake()
+
+    private void Awake()
     {
         if (instance == null)
         {

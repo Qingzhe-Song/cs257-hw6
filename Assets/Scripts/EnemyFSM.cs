@@ -2,14 +2,20 @@
 // Maintainer: Qingzhe-Song
 // Summary: Uses a NavMeshAgent and sight sensor to approach and attack the base or player.
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 
 public class EnemyFSM : MonoBehaviour
 {
-    public enum EnemyState {GoToBase, AttackBase, ChasePlayer, AttackPlayer}
+    public enum EnemyState
+    {
+        GoToBase,
+        AttackBase,
+        ChasePlayer,
+        AttackPlayer
+    }
+
     [Header("State")]
     [Tooltip("Current behavior selected by the enemy's state transitions.")]
     public EnemyState currentState;
@@ -23,31 +29,37 @@ public class EnemyFSM : MonoBehaviour
     public float baseAttackDistance;
     [Tooltip("Player attack range in world units; chasing resumes beyond 110% of this range.")]
     public float playerAttackDistance;
-    private NavMeshAgent agent;
 
     [Header("Weapon")]
     [Tooltip("Projectile spawned from this component's position and rotation.")]
     public GameObject bulletPrefab;
     [InspectorName("Shot Interval (Seconds)")]
     [Tooltip("Minimum elapsed time between shots. Smaller values fire more frequently.")]
-    public float fireRate;
+    [FormerlySerializedAs("fireRate")]
+    public float shotInterval;
 
     [Header("Shot Timing")]
     [InspectorName("Last Shot Time (Seconds)")]
     [Tooltip("Time.time recorded for the previous shot, used to enforce the shot interval.")]
-    public float lastShootTime;
+    [FormerlySerializedAs("lastShootTime")]
+    public float lastShotTime;
 
+    [Header("Weapon Effects")]
+    [Tooltip("Particle system played when this enemy fires.")]
     public ParticleSystem muzzleEffect;
-    // Start is called before the first frame update
-    void Awake()
+    [Tooltip("Audio source played with the muzzle effect when this enemy fires.")]
+    public AudioSource shootSound;
+
+    private NavMeshAgent navigationAgent;
+
+    private void Awake()
     {
         // Spawned enemies resolve the scene's shared base aim point by its object name.
         baseTransform = GameObject.Find("BaseDamagePoint").transform;
-        agent = GetComponentInParent<NavMeshAgent>();
+        navigationAgent = GetComponentInParent<NavMeshAgent>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (currentState == EnemyState.GoToBase)
         {
@@ -67,35 +79,35 @@ public class EnemyFSM : MonoBehaviour
         }
     }
 
-    void GoToBase()
+    private void GoToBase()
     {
-        agent.isStopped = false;
-        agent.SetDestination(baseTransform.position);
+        navigationAgent.isStopped = false;
+        navigationAgent.SetDestination(baseTransform.position);
         if (sightSensor.detectedObject != null)
         {
             currentState = EnemyState.ChasePlayer;
             return;
         }
 
-        float distanceTobase = Vector3.Distance(transform.position, baseTransform.position);
+        float distanceToBase = Vector3.Distance(transform.position, baseTransform.position);
 
         // Include the existing four-unit approach offset when deciding to attack the base.
-        if (distanceTobase < baseAttackDistance + 4)
+        if (distanceToBase < baseAttackDistance + 4)
         {
             currentState = EnemyState.AttackBase;
         }
     }
 
-    void AttackBase()
+    private void AttackBase()
     {
-        agent.isStopped = true;
-        LookTo(baseTransform.position);
+        navigationAgent.isStopped = true;
+        FaceTarget(baseTransform.position);
         Shoot();
     }
 
-    void ChasePlayer()
+    private void ChasePlayer()
     {
-        agent.isStopped = false;
+        navigationAgent.isStopped = false;
         if (sightSensor.detectedObject == null)
         {
             currentState = EnemyState.GoToBase;
@@ -109,19 +121,19 @@ public class EnemyFSM : MonoBehaviour
             currentState = EnemyState.AttackPlayer;
         }
 
-        agent.SetDestination(sightSensor.detectedObject.transform.position);
+        navigationAgent.SetDestination(sightSensor.detectedObject.transform.position);
     }
 
-    void AttackPlayer()
+    private void AttackPlayer()
     {
-        agent.isStopped = true;
+        navigationAgent.isStopped = true;
         if (sightSensor.detectedObject == null)
         {
             currentState = EnemyState.GoToBase;
             return;
         }
 
-        LookTo(sightSensor.detectedObject.transform.position);
+        FaceTarget(sightSensor.detectedObject.transform.position);
         Shoot();
 
         float distanceToPlayer = Vector3.Distance(transform.position, sightSensor.detectedObject.transform.position);
@@ -142,25 +154,26 @@ public class EnemyFSM : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, baseAttackDistance);
     }
 
-    void Shoot()
+    private void Shoot()
     {
-        var timeSinceLastShot = Time.time - lastShootTime;
-        if (timeSinceLastShot > fireRate)
+        float timeSinceLastShot = Time.time - lastShotTime;
+        if (timeSinceLastShot > shotInterval)
         {
-            lastShootTime = Time.time;
+            lastShotTime = Time.time;
             Instantiate(bulletPrefab, transform.position, transform.rotation);
 
             if (muzzleEffect != null)
             {
                 muzzleEffect.Play();
+                shootSound.Play();
             }
         }
     }
 
-    void LookTo(Vector3 targetPosition)
+    private void FaceTarget(Vector3 targetPosition)
     {
         // Turn the parent body on the ground plane so aiming does not tilt the enemy.
-        Vector3 directionToPosition  = Vector3.Normalize(targetPosition - transform.parent.position);
+        Vector3 directionToPosition = Vector3.Normalize(targetPosition - transform.parent.position);
         directionToPosition.y = 0;
         transform.parent.forward = directionToPosition;
     }
