@@ -1,5 +1,5 @@
 {
-    "name": "hw2",
+    "name": "hw3",
     "maps": [
         {
             "name": "Player",
@@ -29,7 +29,7 @@
                     "id": "ee2945fb-220c-4b1b-af80-1e4db0a86631",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Press(behavior=2)",
                     "initialStateCheck": false
                 }
             ],

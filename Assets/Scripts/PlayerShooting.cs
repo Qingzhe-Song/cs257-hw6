@@ -28,17 +28,41 @@ public class PlayerShooting : MonoBehaviour
     [FormerlySerializedAs("bulletsAmount")]
     public int remainingBullets = 100;
 
+    public float fireRate = 0.2f;
+    private Animator animator;
+
     public void OnFire(InputValue value)
     {
-        // PlayerInput sends this callback while paused too, so firing checks the time scale.
-        if (value.isPressed && remainingBullets > 0 && Time.timeScale > 0f)
+        animator.SetBool("Shooting", value.isPressed);
+
+        if (value.isPressed)
         {
-            remainingBullets--;
-            GameObject projectile = Instantiate(projectilePrefab);
-            projectile.transform.position = shootPoint.transform.position;
-            projectile.transform.rotation = shootPoint.transform.rotation;
-            muzzleEffect.Play();
-            shootSound.Play();
+            InvokeRepeating(nameof(Shoot), fireRate, fireRate);
+        }
+        else
+        {
+            CancelInvoke(nameof(Shoot));
         }
     }
+
+    public void Awake()
+    {
+        animator = GetComponent<Animator>();
+    }
+
+    private void Shoot()
+{
+    if (remainingBullets > 0 && Time.timeScale > 0)
+    {
+        remainingBullets--;
+
+        GameObject clone = Instantiate(projectilePrefab);
+
+        clone.transform.position = shootPoint.transform.position;
+        clone.transform.rotation = shootPoint.transform.rotation;
+
+        muzzleEffect.Play();
+        shootSound.Play();
+    }
+}
 }

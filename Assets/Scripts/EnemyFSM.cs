@@ -52,11 +52,15 @@ public class EnemyFSM : MonoBehaviour
 
     private NavMeshAgent navigationAgent;
 
+    private Animator animator;
+
     private void Awake()
     {
         // Spawned enemies resolve the scene's shared base aim point by its object name.
         baseTransform = GameObject.Find("BaseDamagePoint").transform;
         navigationAgent = GetComponentInParent<NavMeshAgent>();
+
+        animator = GetComponentInParent<Animator>();
     }
 
     private void Update()
@@ -81,6 +85,7 @@ public class EnemyFSM : MonoBehaviour
 
     private void GoToBase()
     {
+        animator.SetBool("Shooting", false);
         navigationAgent.isStopped = false;
         navigationAgent.SetDestination(baseTransform.position);
         if (sightSensor.detectedObject != null)
@@ -107,6 +112,7 @@ public class EnemyFSM : MonoBehaviour
 
     private void ChasePlayer()
     {
+        animator.SetBool("Shooting", false);
         navigationAgent.isStopped = false;
         if (sightSensor.detectedObject == null)
         {
@@ -156,6 +162,7 @@ public class EnemyFSM : MonoBehaviour
 
     private void Shoot()
     {
+        animator.SetBool("Shooting", true);
         // Update still runs at zero time scale, so explicitly suppress shots while paused.
         if (Time.timeScale <= 0f)
         {
