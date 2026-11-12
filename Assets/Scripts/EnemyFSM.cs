@@ -1,6 +1,6 @@
 // EnemyFSM.cs
 // Maintainer: Qingzhe-Song
-// Summary: Uses a NavMeshAgent and sight sensor to approach and attack the base or player.
+// Summary: Approaches and attacks the base or player using navigation, sight, and shooting animation.
 
 using UnityEngine;
 using UnityEngine.AI;
@@ -8,6 +8,8 @@ using UnityEngine.Serialization;
 
 public class EnemyFSM : MonoBehaviour
 {
+    private const string ShootingParameterName = "Shooting";
+
     public enum EnemyState
     {
         GoToBase,
@@ -51,7 +53,6 @@ public class EnemyFSM : MonoBehaviour
     public AudioSource shootSound;
 
     private NavMeshAgent navigationAgent;
-
     private Animator animator;
 
     private void Awake()
@@ -59,7 +60,6 @@ public class EnemyFSM : MonoBehaviour
         // Spawned enemies resolve the scene's shared base aim point by its object name.
         baseTransform = GameObject.Find("BaseDamagePoint").transform;
         navigationAgent = GetComponentInParent<NavMeshAgent>();
-
         animator = GetComponentInParent<Animator>();
     }
 
@@ -85,7 +85,7 @@ public class EnemyFSM : MonoBehaviour
 
     private void GoToBase()
     {
-        animator.SetBool("Shooting", false);
+        animator.SetBool(ShootingParameterName, false);
         navigationAgent.isStopped = false;
         navigationAgent.SetDestination(baseTransform.position);
         if (sightSensor.detectedObject != null)
@@ -112,7 +112,7 @@ public class EnemyFSM : MonoBehaviour
 
     private void ChasePlayer()
     {
-        animator.SetBool("Shooting", false);
+        animator.SetBool(ShootingParameterName, false);
         navigationAgent.isStopped = false;
         if (sightSensor.detectedObject == null)
         {
@@ -162,7 +162,9 @@ public class EnemyFSM : MonoBehaviour
 
     private void Shoot()
     {
-        animator.SetBool("Shooting", true);
+        // Keep the attack animation active between shots while the enemy remains in an attack state.
+        animator.SetBool(ShootingParameterName, true);
+
         // Update still runs at zero time scale, so explicitly suppress shots while paused.
         if (Time.timeScale <= 0f)
         {
