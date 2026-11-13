@@ -39,6 +39,7 @@ public class EnemyFSM : MonoBehaviour
     [Tooltip("Minimum elapsed time between shots. Smaller values fire more frequently.")]
     [FormerlySerializedAs("fireRate")]
     public float shotInterval;
+    public Transform shootPoint;
 
     [Header("Shot Timing")]
     [InspectorName("Last Shot Time (Seconds)")]
@@ -175,7 +176,7 @@ public class EnemyFSM : MonoBehaviour
         if (timeSinceLastShot > shotInterval)
         {
             lastShotTime = Time.time;
-            Instantiate(bulletPrefab, transform.position, transform.rotation);
+            Instantiate(bulletPrefab, shootPoint.position, shootPoint.rotation);
 
             if (muzzleEffect != null)
             {
